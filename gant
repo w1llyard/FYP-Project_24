@@ -1,0 +1,17 @@
+ALGO
+    Harvesting order algorithm: DONE
+    Crop Detection: DONE
+    Quality Check: DONE
+IOT
+    Arm: Partly DONE - Testing on hardware needed
+    Obstacle avoidance
+    Autonomous navigation
+Web
+    Dashboard - RobotStatus{Idle, Harvesting, Not Connected, Down}, Other detail - next harvesting,trend
+    RobotView - LiveFeed, Remote Control(Start, Stop, Return to base)
+    Configuration - Change Waypoint on map, Harvesting time rate(each month)
+    Analytics - Harvest Yield (Number of fully, half ripe and green tomatoes), Number of detected risk tomato over time, yield over time
+    
+    Additional:
+        Weather prediction for better harvest scheduling. Cyclone, flood
+        Scheduling harvest based on number of half ripe/green tomatoes detected

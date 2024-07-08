@@ -1,0 +1,12 @@
+.p_field{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 5px 0;
+}
+.p_field label{
+    font-weight: bold;
+}
+.p_error{
+    color: red;
+}

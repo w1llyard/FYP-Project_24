@@ -1,0 +1,12 @@
+.settings{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 20px;
+}
+
+.fields{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

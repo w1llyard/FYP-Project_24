@@ -1,0 +1,23 @@
+body{
+    margin: 0px;
+    padding: 0px;
+}
+
+:root {
+    --primary: rgb(63, 176, 172);  /* Define a blue color variable */
+    --primary_light: rgb(232, 246, 245);  /* Define a blue color variable */
+    --secondary:rgb(238, 242, 246);
+}
+.p-password{
+    width: 100%;
+}
+/* Custom styles for the Tippy.js tooltip */
+.tippy-box[data-theme~='custom'] {
+    background-color: #ffffff; /* Change background color */
+    color: black; /* Text color */
+    border-radius: 10px; /* Border radius */
+    padding: 8px; /* Padding */
+    font-size: 14px; /* Font size */
+    text-align: left; /* Text alignment */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Optional: Box shadow */
+}
