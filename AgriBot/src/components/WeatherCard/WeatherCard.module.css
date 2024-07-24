@@ -1,6 +1,6 @@
 .weatherCard {
     display: flex;
-    width: 290px;
+    width: 250px;
     gap: 12px;
     border-radius: 1rem;
     border: 1px solid #e5e7eb;

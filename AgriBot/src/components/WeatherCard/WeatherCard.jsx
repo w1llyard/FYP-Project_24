@@ -103,7 +103,7 @@ const WeatherCard = ({ icon, title, value, date }) => {
       <div>
         <p>{title}</p>
         <h2>{value}</h2>
-        <p>Generated on : {date}</p>
+        <p style={{fontSize:"10px"}}>Generated on : {date}</p>
       </div>
     </div>
   );

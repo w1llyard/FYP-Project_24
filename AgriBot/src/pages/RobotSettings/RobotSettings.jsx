@@ -1,25 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { MapContainer, TileLayer, useMapEvents, Marker, useMap, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import styles from "./RobotSettings.module.css";
 import { getDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase'; // Adjust the path as needed
+import L, { Icon } from 'leaflet';
+
 
 const RobotSettings = () => {
-  const [harvestingRate, setHarvestingRate] = useState(null);
   const [waypoints, setWaypoints] = useState([]);
   const [userLocation, setUserLocation] = useState([-20.2582305, 57.7544636]); // Default location
 
-  const harvestingRates = [
-    { label: 'Once a Week', value: 'week' },
-    { label: 'Each 2 Weeks', value: '2 week' },
-    { label: 'Once a Month', value: 'month' },
-    { label: 'Each 3 Months', value: '3 months' },
-    { label: 'Each 6 Months', value: '6 months' }
-  ];
-  
   useEffect(() => {
     // Fetch user location
     if (navigator.geolocation) {
@@ -37,7 +29,6 @@ const RobotSettings = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setHarvestingRate(data.harvestRate);
           setWaypoints(data.waypoints.map(point => ({ lat: point.latitude, lng: point.longitude })));
         } else {
           console.log('No such document!');
@@ -59,7 +50,6 @@ const RobotSettings = () => {
         longitude: point.lng
       }));
       await setDoc(doc(db, 'Settings', 'config'), {
-        harvestRate: harvestingRate,
         waypoints: formattedWaypoints
       });
       console.log('Data saved successfully');
@@ -89,23 +79,32 @@ const RobotSettings = () => {
     return null;
   };
 
+  // Custom icon for the first waypoint
+  const firstWaypointIcon = new Icon({
+    iconUrl: 'start.png', // Replace with the path to your custom icon
+    iconSize: [38, 62], // Size of the icon
+    iconAnchor: [18, 62], // Point of the icon which will correspond to marker's location
+  });
+
+  // Custom icon for the first waypoint
+  const normalWaypointIcon = new Icon({
+    iconUrl: 'normal.png', // Replace with the path to your custom icon
+    iconSize: [38, 62], // Size of the icon
+    iconAnchor: [18, 62], // Point of the icon which will correspond to marker's location
+  });
+
+  // Custom icon for the first waypoint
+  const finishWaypointIcon = new Icon({
+    iconUrl: 'finish.png', // Replace with the path to your custom icon
+    iconSize: [38, 62], // Size of the icon
+    iconAnchor: [18, 62], // Point of the icon which will correspond to marker's location
+  });
+
   // Add the first waypoint at the end to close the loop if there are more than 2 waypoints
   const polylinePositions = waypoints.length > 2 ? [...waypoints, waypoints[0]] : waypoints;
 
   return (
     <div className={styles.settings}>
-
-      <div className={styles.fields}>
-        <label htmlFor="harvestingRate">Harvesting Rate</label>
-        <Dropdown
-          id="harvestingRate"
-          value={harvestingRate}
-          options={harvestingRates}
-          onChange={(e) => setHarvestingRate(e.value)}
-          placeholder="Select a Harvesting Rate"
-        />
-      </div>
-
       <div className={styles.fields}>
         <label htmlFor="map">Add Waypoints</label>
         <MapContainer center={userLocation} zoom={50} style={{ height: '600px', width: '100%' }}>
@@ -114,7 +113,7 @@ const RobotSettings = () => {
           />
           <MapEvents />
           {waypoints.map((waypoint, index) => (
-            <Marker key={index} position={waypoint}></Marker>
+            <Marker key={index} position={waypoint} icon={index === 0 ? firstWaypointIcon : index == waypoints.length - 1 ? finishWaypointIcon : normalWaypointIcon}></Marker>
           ))}
           <Polyline positions={polylinePositions} />
         </MapContainer>

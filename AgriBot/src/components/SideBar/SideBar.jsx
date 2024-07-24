@@ -4,7 +4,6 @@ import styles from "./sidebar.module.css";
 
 const sidebarItems = [
   { name: "home", icon: "pi pi-home", route: "/" },
-  { name: "analytics", icon: "pi pi-chart-line", route: "/analytics" },
   { name: "robot", icon: "pi pi-android", route: "/robot" },
   { name: "calendar", icon: "pi pi-calendar", route: "/scheduler" },
   { name: "settings", icon: "pi pi-cog", route: "/settings" },

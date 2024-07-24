@@ -4,9 +4,12 @@ import { Avatar } from "primereact/avatar";
 import styles from "./navbar.module.css";
 import { useAuth } from "../../contexts/AuthProvider";
 import { doSignOut } from "../../firebase/auth";
+import { useNavigate } from "react-router-dom";
+
 const NavBar = () => {
   const auth = useAuth();
   const menu = useRef(null);
+  const navigate = useNavigate();
   const [menuVisible, setMenuVisible] = useState(false);
 
   const items = [
@@ -14,7 +17,7 @@ const NavBar = () => {
       label: "Settings",
       icon: "pi pi-fw pi-cog",
       command: () => {
-        console.log("Settings clicked");
+        navigate("/settings")
       },
     },
     {

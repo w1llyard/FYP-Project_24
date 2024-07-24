@@ -9,7 +9,6 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Scheduler from "../pages/Scheduler/Scheduler";
 import RobotView from "../pages/RobotView/RobotView";
 import RobotSettings from "../pages/RobotSettings/RobotSettings";
-import Analytics from "../pages/Analytics/Analytics";
 
 const router = createBrowserRouter([
   {
@@ -27,10 +26,6 @@ const router = createBrowserRouter([
       {
         path: "/Robot", 
         element: <RobotView/>
-      },
-      {
-        path: "/Analytics", 
-        element: <Analytics/>
       },
       {
         path: "/Settings", 

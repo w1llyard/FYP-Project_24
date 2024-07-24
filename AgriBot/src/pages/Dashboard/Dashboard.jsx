@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Chart } from "primereact/chart";
 import { Skeleton } from "primereact/skeleton";
 import styles from "./dashboard.module.css";
-import CustomCard from "../../components/CustomCard/CustomCard";
 import WeatherCard from "../../components/WeatherCard/WeatherCard";
 import useWeatherForecast from "../../hooks/useWeatherForecast";
 import {
@@ -15,10 +14,14 @@ const Dashboard = () => {
   const { forecast, error, reload } = useWeatherForecast();
   const currentStatus = "Harvesting";
 
-  const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
-  const relevantForecast = forecast && forecast.length > 0 ? 
-    (forecast[0].Date.split('T')[0] === today ? forecast[0] : forecast[1]) : null;
-    console.log(forecast,new Date().toISOString())
+  const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+  const relevantForecast =
+    forecast && forecast.length > 0
+      ? forecast[0].Date.split("T")[0] === today
+        ? forecast[0]
+        : forecast[1]
+      : null;
+  console.log(forecast, new Date().toISOString());
 
   const data = {
     labels: ["January", "February", "March", "April", "May", "June", "July"],
@@ -59,6 +62,36 @@ const Dashboard = () => {
       },
     },
   };
+  const [chartData, setChartData] = useState({});
+  const [chartOptions, setChartOptions] = useState({});
+
+  useEffect(() => {
+    const documentStyle = getComputedStyle(document.documentElement);
+    const data = {
+      labels: ["A", "B", "C"],
+      datasets: [
+        {
+          data: [300, 50, 100],
+          backgroundColor: [
+            documentStyle.getPropertyValue("--blue-500"),
+            documentStyle.getPropertyValue("--yellow-500"),
+            documentStyle.getPropertyValue("--green-500"),
+          ],
+          hoverBackgroundColor: [
+            documentStyle.getPropertyValue("--blue-400"),
+            documentStyle.getPropertyValue("--yellow-400"),
+            documentStyle.getPropertyValue("--green-400"),
+          ],
+        },
+      ],
+    };
+    const options = {
+      cutout: "60%",
+    };
+
+    setChartData(data);
+    setChartOptions(options);
+  }, []);
 
   return (
     <div className={styles.dashboard}>
@@ -87,7 +120,8 @@ const Dashboard = () => {
               icon="Wind"
               title="Wind Speed (km/h)"
               value={
-                (relevantForecast.Day.Wind.Speed.Value * 1.6).toFixed(2) + " km/h"
+                (relevantForecast.Day.Wind.Speed.Value * 1.6).toFixed(2) +
+                " km/h"
               }
               date={extractDatePart(relevantForecast.Date)}
             />
@@ -113,34 +147,18 @@ const Dashboard = () => {
           </>
         )}
       </div>
-      <div className={styles.cards}>
-        <CustomCard
-          title="Total tomatoes harvest"
-          value="1.6k"
-          percentage={-16}
-          icon={<i className="pi pi-thumbs-up"></i>}
-        />
-        <CustomCard
-          title="Total half ripe tomatoes found"
-          value="1.6k"
-          percentage={-16}
-          icon={<i className="pi pi-thumbs-up"></i>}
-        />
-        <CustomCard
-          title="Total Green tomatoes found"
-          value="1.6k"
-          percentage={-16}
-          icon={<i className="pi pi-thumbs-up"></i>}
-        />
-        <CustomCard
-          title="Total Defective tomatoes found"
-          value="1.6k"
-          percentage={-16}
-          icon={<i className="pi pi-thumbs-up"></i>}
-        />
-      </div>
-      <div className={styles.chart}>
-        <Chart type="bar" data={data} options={options} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap:"20px" }}>
+        <div className={styles.chart}>
+          <Chart
+            type="doughnut"
+            data={chartData}
+            options={chartOptions}
+            style={{ width: "30rem" }}
+          />
+        </div>
+        <div className={styles.chart}>
+          <Chart type="line" data={data} options={options} />
+        </div>
       </div>
     </div>
   );
