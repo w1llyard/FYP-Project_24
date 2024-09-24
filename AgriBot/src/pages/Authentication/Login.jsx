@@ -28,9 +28,7 @@ const Login = () => {
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-
     setIsSigningIn(true);
-
     try {
       await doSignInWithEmailAndPassword(email, password).then(() => {
         setIsSigningIn(false);
@@ -44,9 +42,7 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     if (isSigningIn) return;
-
     setIsSigningIn(true);
-
     try {
       await doSignInWithGoogle().then(() => {
         setIsSigningIn(false);
@@ -59,8 +55,7 @@ const Login = () => {
   };
 
   const handleError = (error) => {
-
-    var message="";
+    var message = "";
     if (
       error.code === "auth/invalid-credential" ||
       error.code === "auth/invalid-email"

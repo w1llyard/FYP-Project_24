@@ -1,18 +1,19 @@
 import math
 
+import serial
 
 class RoboticArm:
     def __init__(self):
         # Arm dimensions (mm)
         self.BASE_HGT = 0  # Base height to X/Y plane
-        self.HUMERUS = 2   # Shoulder-to-elbow "bone"
-        self.GRIPPER = 2   # Gripper length, to middle of grip surface
+        self.HUMERUS = 33.3   # Shoulder-to-elbow "bone"
+        self.GRIPPER = 12   # Gripper length, to middle of grip surface
 
         # Joint limits
         self.BAS_MIN = 0.0
         self.BAS_MAX = 180.0
         self.SHL_MIN = 0
-        self.SHL_MAX = 180.0
+        self.SHL_MAX = 115.0
         self.WRI_MIN = 0
         self.WRI_MAX = 180.0
         self.GRI_MIN = 0
@@ -22,7 +23,6 @@ class RoboticArm:
         self.last_error = None
 
     def go_to(self, x, y, z):
-        """Calculate the necessary servo positions to achieve the desired end effector position."""
         try:
             bas_angle_r = math.atan2(z, x)
 
@@ -61,21 +61,69 @@ class RoboticArm:
         """Retrieve the last error message."""
         return self.last_error
 
-    def is_successful(self):
-        """Check if the last operation was successful."""
-        return self.last_error is None
 
+def move_arm(base, shoulder, wrist):
+    """Send a command to move the arm to specified angles."""
+    command = f"MOVE,{base},{shoulder},{wrist}"
+    send_command_arduino(command)
 
-# Example of using the RoboticArm class
+def control_gripper(action):
+    """Control the gripper's action (OPEN, CLOSE)."""
+    command = f"GRIP,{action}"
+    send_command_arduino(command)
+
+def send_command_arduino(command):
+    """Send a command to the Arduino via serial."""
+    try:
+        # Open serial connection to Arduino
+        print(f"Sending command: {command}")
+        
+        # Send the command
+        ser.write((command + '\n').encode())
+        
+
+    except Exception as e:
+        print(f"Error sending command to Arduino: {e}")
+
+ARDUINO_PORT='COM5'
+ARDUINO_BAUD_RATE=9600
+
+ser = serial.Serial(ARDUINO_PORT, ARDUINO_BAUD_RATE)
+
 robot_arm = RoboticArm()
-result = robot_arm.go_to(5, 5, 0)
 
-if result:
-    print("Arm positioned to:", result)
-    base_angle, shoulder_angle, wrist_angle = result
+# Main program to allow user input for x, y, z coordinates
+while True:
+    try:
+        # Get user input for x, y, z coordinates
+        x = float(input("Enter the X coordinate: "))
+        y = float(input("Enter the Y coordinate: "))
+        z = float(input("Enter the Z coordinate: "))
 
-else:
-    print("Error:", robot_arm.get_last_error())
+        # Get the corresponding angles for base, shoulder, wrist
+        result = robot_arm.go_to(x, y, z)
+
+        if result:
+            base, shoulder, wrist = result
+            move_arm(base, shoulder, wrist)
+
+        # Option to control the gripper
+        gripper_action = input("Do you want to OPEN or CLOSE the gripper? (OPEN/CLOSE/none): ").upper()
+        if gripper_action in ["OPEN", "CLOSE"]:
+            control_gripper(gripper_action)
+
+        # Option to exit the loop
+        exit_command = input("Do you want to exit? (yes/no): ").lower()
+        if exit_command == 'yes':
+            break
+
+    except ValueError:
+        print("Invalid input. Please enter numeric values for X, Y, Z coordinates.")
+
+# Close the serial connection
+ser.close()
+
+
 
 
 # import math

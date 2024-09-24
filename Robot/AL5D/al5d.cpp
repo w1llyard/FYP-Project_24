@@ -4,7 +4,7 @@ SoftwareSerial ssc32u(12, 13);
 
 void al5d::begin() {
   // Initialize the serial connection for SSC-32U
-  ssc32u.begin(9600);
+  ssc32u.begin(115200);
   ssc32u.listen();
 
   // Initialize motor_locs with a neutral position if not already initialized

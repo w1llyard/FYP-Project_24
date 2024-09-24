@@ -59,16 +59,14 @@ const Scheduler = () => {
         const firebaseEvents = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           title: doc.data().title,
-          date: extractDatePart(doc.data().date.toDate()), // Assuming `start` is a Firestore Timestamp
+          date: extractDatePart(doc.data().date.toDate()),
           extendedProps: doc.data().extendedProps,
         }));
-        console.log(firebaseEvents)
         setEvents((prevEvents) => [...prevEvents, ...firebaseEvents]);
       } catch (error) {
         console.error("Error fetching events: ", error);
       }
     };
-
     if (!isFetched.current) {
       fetchEvents();
       isFetched.current = true;
@@ -111,7 +109,7 @@ const Scheduler = () => {
       : `<div class="${styles.customTooltip}">
         <h3>Event Details</h3>
         <hr>
-        <p><strong>Description:</strong> ${info.event.extendedProps.description}</p>
+        <p><strong>Description:</strong>Make robot harvest</p>
       </div>`;
 
     tippy(info.el, {
@@ -157,6 +155,12 @@ const Scheduler = () => {
     setDetailDialogVisible(true);
   };
 
+  const isHarvestEventOnDate = (date) => {
+    return events.some(
+      (event) => event.date == extractDatePart(date) && event.title == "Auto Harvest"
+    );
+  };
+
   const handleDateClick = (info) => {
     const today = new Date();
     if (info.date < today.setHours(0, 0, 0, 0)) {
@@ -168,12 +172,22 @@ const Scheduler = () => {
       });
       return;
     }
+
+    if (isHarvestEventOnDate(info.date)) {
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "An event with the title 'Auto Harvest' already exists on this date.",
+        life: 3000,
+      });
+      return;
+    }
+
     setSelectedDate(info.date);
     setSelectedEvent(null); // Reset selected event to null
     setDialogVisible(true);
     setFormKey(formKey + 1); // Change the form key to force re-mount
   };
-
   const handleUpdate = (event) => {
     setSelectedEvent(event);
     setDialogVisible(true);
@@ -201,37 +215,65 @@ const Scheduler = () => {
     }
     setDetailDialogVisible(false);
   };
-
   const handleSave = async (newEvent) => {
+    const newEventDate = (newEvent.startDate);
+
+    // Check if adding/updating event conflicts with existing 'Auto Harvest' event on that date
+    if (newEvent.title == "Auto Harvest" && isHarvestEventOnDate(newEventDate)) {
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Only one Auto Harvest Event per day",
+        life: 3000,
+      });
+      return;
+    }
+
     if (selectedEvent) {
       // Update existing event
       try {
         const eventRef = doc(db, "Events", selectedEvent.id);
+
+        // Check if changing the date and it conflicts with a 'Auto Harvest' event
+        if (
+          newEvent.title == "Auto Harvest" &&
+          newEventDate != selectedEvent.date &&
+          isHarvestEventOnDate(newEventDate)
+        ) {
+          toast.current.show({
+            severity: "error",
+            summary: "Error",
+            detail: "Only one Auto Harvest Event per day",
+            life: 3000,
+          });
+          return;
+        }
+
         await updateDoc(eventRef, {
           title: newEvent.title,
           date: newEvent.startDate,
           extendedProps: {
-            description: newEvent.description,
             category: newEvent.category,
-            severityColor: newEvent.type === "rain" ? "blue" : "green", // Set a default color for new events
+            severityColor: newEvent.type === "rain" ? "blue" : "green",
           },
         });
+
         setEvents((prevEvents) =>
           prevEvents.map((event) =>
             event.id === selectedEvent.id
               ? {
                   ...event,
                   title: newEvent.title,
-                  date: newEvent.startDate,
+                  date: extractDatePart(newEvent.startDate),
                   extendedProps: {
-                    description: newEvent.description,
                     category: newEvent.category,
-                    severityColor: newEvent.type === "rain" ? "blue" : "green", // Set a default color for new events
+                    severityColor: newEvent.type === "rain" ? "blue" : "green",
                   },
                 }
               : event
           )
         );
+
         toast.current.show({
           severity: "success",
           summary: "Success",
@@ -253,24 +295,24 @@ const Scheduler = () => {
           title: newEvent.title,
           date: newEvent.startDate,
           extendedProps: {
-            description: newEvent.description,
             category: newEvent.category,
-            severityColor: newEvent.type === "rain" ? "blue" : "green", // Set a default color for new events
+            severityColor: newEvent.type === "rain" ? "blue" : "green",
           },
         });
+
         setEvents((prevEvents) => [
           ...prevEvents,
           {
             id: docRef.id,
             title: newEvent.title,
-            date: newEvent.startDate,
+            date: extractDatePart(newEvent.startDate),
             extendedProps: {
-              description: newEvent.description,
               category: newEvent.category,
-              severityColor: newEvent.type === "rain" ? "blue" : "green", // Set a default color for new events
+              severityColor: newEvent.type === "rain" ? "blue" : "green",
             },
           },
         ]);
+
         toast.current.show({
           severity: "success",
           summary: "Success",

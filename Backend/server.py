@@ -1,7 +1,6 @@
-from datetime import datetime
+import cv2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from utils import allowed_file
 from CropDetection import RipenessTomatoDetection, TomatoDefectsDetection
 from PIL import Image
 import constant
@@ -11,75 +10,99 @@ from FirebaseHandler import FirebaseHandler
 app = Flask(__name__)
 CORS(app)
 
-# Initialize Firebase Handler
-firebase_handler = FirebaseHandler('Backend\serviceAccountKey.json')
+
+firebase_handler = FirebaseHandler('Robot\serviceAccountKey.json')
 
 # Initialize detectors
 tomatoDetector = RipenessTomatoDetection(model_path=constant.RIPENESS_TOMATO_DETECTOR_MODEL)
 defectDetector = TomatoDefectsDetection(model_path=constant.TOMATO_DEFECTS_DETECTOR_MODEL)
 
+robot_ip, computer_ip = firebase_handler.get_ip_addresses()
+
+# Stream URL (e.g., from mjpg-streamer)
+stream_url = "http://" + robot_ip + ":8080/?action=stream"
+
+
 @app.route('/tomatodetection', methods=['POST'])
 def tomatodetection():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part in the request'}), 400
+    camera = cv2.VideoCapture(stream_url)
+    
+    if not camera.isOpened():
+        return jsonify({'error': 'Could not open camera'}), 500
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+    frames = []
+    number_of_frames = 2  # We want to capture two frames
 
-    if file and allowed_file(file.filename):
-        image = Image.open(file)
-        predictions = tomatoDetector.GetPredictions(image)
-        typeCounts = tomatoDetector.CountTomatoTypes(predictions, class_names=constant.RIPENESS_LEVEL_CLASS_NAMES)
-        ripeTomatoesPredictions = tomatoDetector.FilterRipeTomatoes(predictions)
-        pickOrderSequence = tomatoDetector.GetPickOrder(ripeTomatoesPredictions, image.size[1], retrieve_all=True)
+    for _ in range(number_of_frames):
+        ret, frame = camera.read()
 
-        result = {
-            "typeCounts": typeCounts,
-            "pickSequence": pickOrderSequence,
-        }
+        if not ret:
+            camera.release()
+            return jsonify({'error': 'Failed to capture image from camera'}), 500
 
-        # Send typeCounts to Firebase
-        firebase_handler.send_type_counts(typeCounts)
+        frames.append(frame)
 
-        return jsonify(result), 200
-    else:
-        return jsonify({'error': 'File type is not allowed'}), 400
+    camera.release()
+
+    images = [Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)) for frame in frames]
+    predictions = tomatoDetector.GetPredictions(images)
+
+    last_predictions = [predictions[-1]]
+    typeCounts = tomatoDetector.CountTomatoTypes(last_predictions, class_names=constant.RIPENESS_LEVEL_CLASS_NAMES)
+    ripeTomatoesPredictions = tomatoDetector.FilterRipeTomatoes(last_predictions)
+    pickOrderSequence = tomatoDetector.GetPickOrder(ripeTomatoesPredictions, images[-1].size[1])
+
+    result = {
+        "typeCounts": typeCounts,
+        "pickSequence": pickOrderSequence,
+    }
+
+    return jsonify(result), 200
 
 @app.route('/defectdetection', methods=['POST'])
 def defectdetection():
-    if 'files' not in request.files:
-        return jsonify({'error': 'No files part in the request'}), 400
+    # Get the bounding box from the request
+    bbox = request.json.get('bbox', None)
+    
+    if bbox is None or len(bbox) != 4:
+        return jsonify({'error': 'Invalid or missing bounding box'}), 400
 
-    files = request.files.getlist('files')
-    if not files:
-        return jsonify({'error': 'No selected files'}), 400
-        
-    images = []
-    for file in files:
-        if file and allowed_file(file.filename):
-            try:
-                image = Image.open(file)
-                images.append(image)
-            except IOError:
-                return jsonify({'error': f'File {file.filename} is not a valid image'}), 400
-        else:
-            return jsonify({'error': f'File {file.filename} is not allowed'}), 400
+    x, y, w, h = bbox
 
-    predictions = defectDetector.GetPredictions(images)
+    camera = cv2.VideoCapture(stream_url)
+    
+    if not camera.isOpened():
+        return jsonify({'error': 'Could not open camera'}), 500
+
+    ret, frame = camera.read()
+    if not ret:
+        camera.release()
+        return jsonify({'error': 'Failed to capture image from camera'}), 500
+    
+    # Release the camera
+    camera.release()
+
+    # Cut out the region defined by the bounding box
+    cropped_image = frame[y:y+h, x:x+w]
+
+    # Resize the cropped image to 640x640
+    resized_image = cv2.resize(cropped_image, (640, 640))
+
+    # Convert the image for prediction
+    image = Image.fromarray(cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB))
+
+    # Get predictions
+    predictions = defectDetector.GetPredictions(image)
     isTomatoGood = defectDetector.CheckTomatoQuality(predictions)
     tomatoTypesCount = defectDetector.CountTomatoTypes(predictions, class_names=constant.TOMATO_DEFECTS_CLASS_NAMES)
 
+    # Adjust the type counts
+    tomatoTypesCount["bad"] = 1 if tomatoTypesCount["at risk"] > 1 or tomatoTypesCount["rotten"] > 1 else tomatoTypesCount["at risk"]
+
     results = {
         "isTomatoGood": isTomatoGood,
+        "typeCounts": tomatoTypesCount["bad"]
     }
-
-    tomatoTypesCount["fresh"] = 1 if isTomatoGood else 0
-    tomatoTypesCount["at risk"] = 1 if tomatoTypesCount["at risk"] > 1 else tomatoTypesCount["at risk"]
-    tomatoTypesCount["rotten"] = 1 if tomatoTypesCount["bad"] > 1 else tomatoTypesCount["bad"]
-
-    # Send typeCounts to Firebase
-    firebase_handler.send_type_counts(tomatoTypesCount)
 
     return jsonify(results), 200
 
@@ -92,4 +115,4 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run( port=5000, host="0.0.0.0")

@@ -11,14 +11,21 @@
   }
   
   .video {
-    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
     height: 100%;
-    max-width: 600px;
     border-radius: 10px;
+    background-color: black;
+    aspect-ratio: 4/3;
   }
   
   .controls {
+    width: 100%;
+    flex-wrap: wrap;
     display: flex;
+    justify-content: center;
     gap: 10px;
     margin-top: 20px;
   }
@@ -35,5 +42,29 @@
   
   .button:hover {
     background-color: #0056b3;
+  }
+  
+  .statusContainer {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  
+  .statusText {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+  }
+  
+  .statusOnline {
+    color: #28a745;
+  }
+  
+  .statusOffline {
+    color: #dc3545;
   }
   

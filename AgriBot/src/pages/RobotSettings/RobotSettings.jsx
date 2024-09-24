@@ -13,7 +13,6 @@ const RobotSettings = () => {
   const [userLocation, setUserLocation] = useState([-20.2582305, 57.7544636]); // Default location
 
   useEffect(() => {
-    // Fetch user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
@@ -21,7 +20,6 @@ const RobotSettings = () => {
       });
     }
 
-    // Fetch existing settings
     const fetchSettings = async () => {
       try {
         const docRef = doc(db, 'Settings', 'config'); // Correct document reference
@@ -40,8 +38,6 @@ const RobotSettings = () => {
 
     fetchSettings();
   }, []);
-
-
 
   const handleSave = async () => {
     try {

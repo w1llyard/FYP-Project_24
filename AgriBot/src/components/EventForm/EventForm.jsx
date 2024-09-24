@@ -9,10 +9,9 @@ import styles from "./EventForm.module.css";
 import { Toast } from "primereact/toast";
 
 const EventForm = ({ visible, onHide, onSave, initialDate, event }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState("Auto Harvest");
   const [startDate, setStartDate] = useState(initialDate || null);
-  const [category, setCategory] = useState(null);
+  const [category, setCategory] = useState("Harvest");
   const toast = useRef(null);
 
   const categories = [{ label: "Harvest", value: "Harvest" }];
@@ -20,9 +19,7 @@ const EventForm = ({ visible, onHide, onSave, initialDate, event }) => {
   useEffect(() => {
     if (event) {
       setTitle(event.title);
-      setDescription(event.extendedProps.description);
       setStartDate(event.start);
-
       setCategory(event.extendedProps.category);
     }
   }, [event]);
@@ -38,17 +35,10 @@ const EventForm = ({ visible, onHide, onSave, initialDate, event }) => {
 
   const handleSubmit = () => {
     const now = new Date();
+    now.setHours(0,0,0,0);
     
-    if (!title) {
-      showToast("Title is required.");
-      return;
-    }
     if (title.toLowerCase().startsWith("rainfall")) {
       showToast('Title cannot start with "Rainfall".');
-      return;
-    }
-    if (!description) {
-      showToast("Description is required.");
       return;
     }
     if (!startDate) {
@@ -56,6 +46,7 @@ const EventForm = ({ visible, onHide, onSave, initialDate, event }) => {
       return;
     }
     if (startDate < now) {
+      console.log(startDate, now)
       showToast("Start date must be in the future.");
       return;
     }
@@ -66,7 +57,6 @@ const EventForm = ({ visible, onHide, onSave, initialDate, event }) => {
 
     onSave({
       title,
-      description,
       startDate,
       category,
     });
@@ -86,23 +76,6 @@ const EventForm = ({ visible, onHide, onSave, initialDate, event }) => {
         }
       >
         <div className={styles.p_fluid}>
-          <div className={styles.p_field}>
-            <label htmlFor="title">Title</label>
-            <InputText
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          <div className={styles.p_field}>
-            <label htmlFor="description">Event Description</label>
-            <InputTextarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div className={styles.p_field}>
               <label htmlFor="startDate">Start Date</label>

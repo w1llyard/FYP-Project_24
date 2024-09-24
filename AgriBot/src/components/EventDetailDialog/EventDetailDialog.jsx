@@ -29,8 +29,7 @@ const EventDetailDialog = ({ visible, onHide, event, onUpdate, onDelete }) => {
                     <div>
                         <p><strong>Description:</strong> {event.extendedProps.description}</p>
                         <p><strong>Category:</strong> {event.extendedProps.category}</p>
-                        <p><strong>Start:</strong> {new Date(event.start).toLocaleString()}</p>
-                        <p><strong>End:</strong> {new Date(event.end).toLocaleString()}</p>
+                        <p><strong>Date:</strong> {new Date(event.start).toLocaleDateString()}</p>
                     </div>
                 )}
             </div>

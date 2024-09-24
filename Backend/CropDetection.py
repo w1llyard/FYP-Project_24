@@ -1,5 +1,4 @@
 import math
-import cv2
 import json
 from typing import Union, List
 from ultralytics import YOLO
@@ -67,38 +66,29 @@ class RipenessTomatoDetection(TomatoDetection):
 
         return min_distance
 
-    def GetPickOrder(self, predictions: list, image_height:int, retrieve_all=False):
+    def GetPickOrder(self, predictions: list, image_height:int):
         remaining_detections = predictions
-
-        # List to store the order of processed detections
         predictions = []
-        # Iterate and plot each box as it is processed
-        while remaining_detections:
+        scores = []
 
-            # Calculate scores
-            scores = []
-            for i, detection in enumerate(remaining_detections):
-                box = detection['box']
-                position_score = self.Calculate_Position_Score(box, image_height)
+        for i, detection in enumerate(remaining_detections):
+            box = detection['box']
+            position_score = self.Calculate_Position_Score(box, image_height)
 
-                other_boxes = []
-                for j, detect in enumerate(remaining_detections):
-                    if j != i:
-                        other_boxes.append(detect["box"])
-                isolation_score = self.Calculate_Isolation_Score(box, other_boxes)
-                # Combine the scores (main score minus secondary score)
-                combined_score = position_score - isolation_score
-                detection["id"] = i
-                scores.append((combined_score, detection))
+            other_boxes = []
+            for j, detect in enumerate(remaining_detections):
+                if j != i:
+                    other_boxes.append(detect["box"])
+            isolation_score = self.Calculate_Isolation_Score(box, other_boxes)
+            combined_score = position_score - isolation_score
+            detection["id"] = i
+            scores.append((combined_score, detection))
 
-            # Select the best box and plot it
+        if len(scores) > 0:
             best_score, best_detection = sorted(scores)[0]
             remaining_detections.pop(best_detection["id"])
             best_detection["id"] = len(predictions)
             predictions.append(best_detection)
-
-            if not retrieve_all:
-                break
 
         return predictions
 

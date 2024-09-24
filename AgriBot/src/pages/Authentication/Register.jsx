@@ -32,7 +32,6 @@ const Register = () => {
 
   const handleEmailRegister = async (e) => {
     e.preventDefault();
-
     setIsRegistering(true);
     if (!validateEmail(email)) {
       handleError("Email is incorrect.");
