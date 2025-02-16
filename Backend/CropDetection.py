@@ -66,30 +66,39 @@ class RipenessTomatoDetection(TomatoDetection):
 
         return min_distance
 
-    def GetPickOrder(self, predictions: list, image_height:int):
+    def GetPickOrder(self, predictions: list, image_height:int, retrieve_all=False):
         remaining_detections = predictions
+
+        # List to store the order of processed detections
         predictions = []
-        scores = []
+        # Iterate and plot each box as it is processed
+        while remaining_detections:
 
-        for i, detection in enumerate(remaining_detections):
-            box = detection['box']
-            position_score = self.Calculate_Position_Score(box, image_height)
+            # Calculate scores
+            scores = []
+            for i, detection in enumerate(remaining_detections):
+                box = detection['box']
+                position_score = self.Calculate_Position_Score(box, image_height)
 
-            other_boxes = []
-            for j, detect in enumerate(remaining_detections):
-                if j != i:
-                    other_boxes.append(detect["box"])
-            isolation_score = self.Calculate_Isolation_Score(box, other_boxes)
-            combined_score = position_score - isolation_score
-            detection["id"] = i
-            scores.append((combined_score, detection))
+                other_boxes = []
+                for j, detect in enumerate(remaining_detections):
+                    if j != i:
+                        other_boxes.append(detect["box"])
+                isolation_score = self.Calculate_Isolation_Score(box, other_boxes)
+                # Combine the scores (main score minus secondary score)
+                combined_score = position_score - isolation_score
+                detection["id"] = i
+                scores.append((combined_score, detection))
 
-        if len(scores) > 0:
+            # Select the best box and plot it
             best_score, best_detection = sorted(scores)[0]
             remaining_detections.pop(best_detection["id"])
             best_detection["id"] = len(predictions)
             predictions.append(best_detection)
 
+            if not retrieve_all:
+                break
+            
         return predictions
 
     def FilterRipeTomatoes(self, predictions):

@@ -55,8 +55,8 @@ frame_w = 1280
 frame_h = 960
 
 # Dead zone size (in pixels)
-dead_zone_x = 10
-dead_zone_y = 10
+dead_zone_x = 20
+dead_zone_y = 20
 
 CAM_PAN_OFFSET = 3
 CAM_TILT_OFFSET = 25
@@ -344,7 +344,7 @@ def get_defect_detection(bbox):
 
 def point_camera_to(x, y, w, h):
     global cam_pan, cam_tilt
-    sensitivity = 5.0
+    sensitivity = 3.0
     tomato_center_x = x + w // 2
     tomato_center_y = y + h // 2
     turn_x = float(tomato_center_x - (frame_w / 2))
@@ -375,7 +375,7 @@ def track_target():
     status = "moving"
     while status != "centered":
         target = get_ripeness_detection()
-        if target == []:
+        if target["pickSequence"] == []:
             print("No Tomatoes found")
             return False
 
@@ -481,7 +481,7 @@ def angle_difference(current_heading, target_heading):
     diff = (target_heading - current_heading + 180) % 360 - 180
     return diff
 
-def move_to_destination(dest_lat, dest_lon, threshold_distance=3):
+def move_to_destination(dest_lat, dest_lon, threshold_distance=8):
     try:
         while True:
             current_data = fetch_from_arduino()
@@ -506,16 +506,16 @@ def move_to_destination(dest_lat, dest_lon, threshold_distance=3):
                 angle_diff = angle_difference(current_compass_phone, course_angle)
                 if abs(angle_diff) < 15:
                     print("Moving towards the destination...")
-                    run(50)  # Move forward
+                    run(40)  # Move forward
                     time.sleep(0.5)
                     brake()
                     break 
                 elif angle_diff > 0:
                     print(f"Angle difference: {angle_diff}. Adjusting heading: Turning right")
-                    right(30)
+                    spin_right(30)
                 else:
                     print(f"Angle difference: {angle_diff}. Adjusting heading: Turning left")
-                    left(30)
+                    spin_left(30)
 
                 time.sleep(0.5)
                 brake()
@@ -598,36 +598,38 @@ robot_arm = RoboticArm()
 def auto_mode():
     try:
         init()
-        while True:
-            found, id = firebase_handler.fetch_event_for_today()
-            if found == False:
-                print("No event found")
-                time.sleep(15)
-                continue
-            waypoints = firebase_handler.get_waypoints()
-            if waypoints:
-                for waypoint in waypoints:
-                    latitude = waypoint['latitude']
-                    longitude = waypoint['longitude']
-                    print(f"Desired Latitude: {latitude}, Longitude: {longitude}")
-                    move_to_destination(latitude, longitude)
-                    target = get_ripeness_detection()
-                    firebase_handler.send_type_counts(target["typeCounts"])
-                    while track_target():
-                        target = get_ripeness_detection()
-                        bbox = calculate_box_dimensions(target["pickSequence"])
-                        isTomatoGood = get_defect_detection(bbox)
-                        if isTomatoGood:
-                            harvest_tomato()
-                        else:
-                            firebase_handler.send_type_counts({"bad":1})
-                            break
+        track_target()
+        # Get the corresponding angles for base, shoulder, wrist
+        # while True:
+        #     found, id = firebase_handler.fetch_event_for_today()
+        #     if found == False:
+        #         print("No event found")
+        #         time.sleep(15)
+        #         continue
+        #     waypoints = firebase_handler.get_waypoints()
+        #     if waypoints:
+        #         for waypoint in waypoints:
+        #             latitude = waypoint['latitude']
+        #             longitude = waypoint['longitude']
+        #             print(f"Desired Latitude: {latitude}, Longitude: {longitude}")
+        #             move_to_destination(latitude, longitude)
+        #             target = get_ripeness_detection()
+        #             firebase_handler.send_type_counts(target["typeCounts"])
+        #             while track_target():
+        #                 target = get_ripeness_detection()
+        #                 bbox = calculate_box_dimensions(target["pickSequence"])
+        #                 isTomatoGood = get_defect_detection(bbox)
+                        # if isTomatoGood:
+                        #     harvest_tomato()
+                        # else:
+                        #     firebase_handler.send_type_counts({"bad":1})
+                        #     break
 
-                print("Event completed")
-                firebase_handler.mark_event_as_completed(id)
-                time.sleep(1)           
-            else:
-                print("No waypoints found in database")
+            #     print("Event completed")
+            #     firebase_handler.mark_event_as_completed(id)
+            #     time.sleep(1)           
+            # else:
+            #     print("No waypoints found in database")
     finally:
         cleanup()
 
@@ -746,13 +748,13 @@ def manual_mode(command_queue):
 
             if command == 'left':
                 print("Robot moving left ")
-                left(30)
+                spin_left(30)
                 time.sleep(0.5)
                 brake()
                 time.sleep(0.5)
             elif command == 'right':
                 print("Robot moving right ")
-                right(30)
+                spin_right(30)
                 time.sleep(0.5)
                 brake()
                 time.sleep(0.5)
@@ -777,6 +779,6 @@ def manual_mode(command_queue):
 if __name__ == '__main__':
     # Start auto mode when the script runs
 
-        start_auto_mode()
+        start_manual_mode()
         # Run the Flask app
         app.run(host='0.0.0.0', port=5000)

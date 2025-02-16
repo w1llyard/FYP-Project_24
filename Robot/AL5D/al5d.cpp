@@ -14,7 +14,7 @@ void al5d::begin() {
 
   // Prepare the command string using the values in motor_locs
   char output[256];  // Ensure the buffer is large enough
-  sprintf(output, "#8P%u #9P%u #10P%u #11P%u #12P%u #13P%u #15P%u\r",
+  sprintf(output, "#24P%u #25P%u #26P%u #27P%u #12P%u #13P%u #15P%u\r",
           motor_locs[0],
           motor_locs[1],
           motor_locs[2],
@@ -38,7 +38,7 @@ void al5d::set_motor(uint8_t motor_num, int degree) {
 
 void al5d::move_to_locs(int time, int speed) {
   char output[256];  // Increase buffer size if necessary
-  sprintf(output, "#8P%uS%u #9P%uS%u #10P%uS%u #11P%uS%u #12P%uS%u #13P%uS%uT%u\r",
+  sprintf(output, "#24P%uS%u #25P%uS%u #26P%uS%u #27P%uS%u #12P%uS%u #13P%uS%uT%u\r",
           motor_locs[0], speed,  // Assuming index 8 corresponds to motor #8 and so on
           motor_locs[1], speed,
           motor_locs[2], speed,
@@ -51,7 +51,7 @@ void al5d::move_to_locs(int time, int speed) {
 }
 String al5d::get_all_motor_positions(int speed, int time) {
     char output[256];
-    sprintf(output, "#8P%uS%u #9P%uS%u #10P%uS%u #11P%uS%u #12P%uS%u #15P%uS%uT%u\r",
+    sprintf(output, "#24P%uS%u #25P%uS%u #26P%uS%u #27P%uS%u #12P%uS%u #15P%uS%uT%u\r",
                  motor_locs[0], speed,
                  motor_locs[1], speed,
                  motor_locs[2], speed,

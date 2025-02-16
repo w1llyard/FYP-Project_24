@@ -6,8 +6,8 @@ class RoboticArm:
     def __init__(self):
         # Arm dimensions (mm)
         self.BASE_HGT = 0  # Base height to X/Y plane
-        self.HUMERUS = 33.3   # Shoulder-to-elbow "bone"
-        self.GRIPPER = 12   # Gripper length, to middle of grip surface
+        self.HUMERUS = 32.7   # Shoulder-to-elbow "bone"
+        self.GRIPPER = 11   # Gripper length, to middle of grip surface
 
         # Joint limits
         self.BAS_MIN = 0.0
@@ -85,10 +85,6 @@ def send_command_arduino(command):
     except Exception as e:
         print(f"Error sending command to Arduino: {e}")
 
-ARDUINO_PORT='COM5'
-ARDUINO_BAUD_RATE=9600
-
-ser = serial.Serial(ARDUINO_PORT, ARDUINO_BAUD_RATE)
 
 robot_arm = RoboticArm()
 
@@ -105,12 +101,9 @@ while True:
 
         if result:
             base, shoulder, wrist = result
-            move_arm(base, shoulder, wrist)
+            print(f"Base={base}, Shoulder={shoulder + 8.739}, Wrist={wrist}")
 
-        # Option to control the gripper
-        gripper_action = input("Do you want to OPEN or CLOSE the gripper? (OPEN/CLOSE/none): ").upper()
-        if gripper_action in ["OPEN", "CLOSE"]:
-            control_gripper(gripper_action)
+
 
         # Option to exit the loop
         exit_command = input("Do you want to exit? (yes/no): ").lower()
@@ -120,8 +113,7 @@ while True:
     except ValueError:
         print("Invalid input. Please enter numeric values for X, Y, Z coordinates.")
 
-# Close the serial connection
-ser.close()
+
 
 
 

@@ -1,5 +1,5 @@
 #include <TinyGPS++.h>
-#include <NeoSWSerial.h>
+#include <HardwareSerial.h>
 #include <HMC5883L.h>  // Include the Compass class
 #include <Wire.h>
 #include "al5d.h"
@@ -8,7 +8,7 @@
 // Create instances of the required classes
 HMC5883L compass;
 TinyGPSPlus gps;         // TinyGPS++ instance
-NeoSWSerial GPS1(3, 4);  // NeoSWSerial instance for GPS communication (RX, TX pins)
+SoftwareSerial GPS1(3, 4);  // NeoSWSerial instance for GPS communication (RX, TX pins)
 al5d AL5D;
 
 // Define pins for the Ultrasonic Sensor

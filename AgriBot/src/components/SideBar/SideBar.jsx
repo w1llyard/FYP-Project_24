@@ -6,6 +6,7 @@ const sidebarItems = [
   { name: "home", icon: "pi pi-home", route: "/" },
   { name: "robot", icon: "pi pi-android", route: "/robot" },
   { name: "calendar", icon: "pi pi-calendar", route: "/scheduler" },
+  { name: "model", icon: "pi pi-tablet", route: "/model" },
   { name: "settings", icon: "pi pi-cog", route: "/settings" },
 ];
 

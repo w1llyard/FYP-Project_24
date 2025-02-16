@@ -1,3 +1,4 @@
+import copy
 import cv2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -5,6 +6,8 @@ from CropDetection import RipenessTomatoDetection, TomatoDefectsDetection
 from PIL import Image
 import constant
 from FirebaseHandler import FirebaseHandler
+import io
+import base64
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -105,6 +108,42 @@ def defectdetection():
     }
 
     return jsonify(results), 200
+
+@app.route('/api/predict', methods=['POST'])
+def predict():
+    # Parse the JSON body of the request
+    data = request.json
+    if 'image' not in data:
+        return jsonify({"error": "No image provided"}), 400
+
+    # Decode the base64-encoded image
+    image_data = data['image'].split(",")[1]  # Remove data:image/...;base64, header if present
+    image_bytes = base64.b64decode(image_data)
+
+    # Open the image
+    image = Image.open(io.BytesIO(image_bytes))
+    predictions = []
+
+    if data['type'] == "defect":
+        predictions = defectDetector.GetPredictions(image)
+    else:
+        predictions = tomatoDetector.GetPredictions(image)
+        ripeTomatoesPredictions = tomatoDetector.FilterRipeTomatoes(predictions)
+        pickOrderSequenceBest = tomatoDetector.GetPickOrder(copy.deepcopy(ripeTomatoesPredictions), image.size[1])
+        pickOrderSequenceAll = tomatoDetector.GetPickOrder(copy.deepcopy(ripeTomatoesPredictions), image.size[1], retrieve_all=True)
+
+    # Return the predictions and pick order (if ripeness) as JSON
+    response = {
+        "predictions": predictions
+    }
+    
+    # Include pick order sequence if type is not defect
+    if data['type'] != "defect":
+        response["pick_order_best"] = pickOrderSequenceBest
+        response["pick_order_all"] = pickOrderSequenceAll
+
+    print(response)
+    return jsonify(response)
 
 @app.errorhandler(404)
 def not_found(error):

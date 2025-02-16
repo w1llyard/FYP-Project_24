@@ -15,6 +15,9 @@ class FirebaseHandler:
         today_str = datetime.today().strftime('%Y-%m-%d')
         doc_ref = self.db.collection("RobotDailyReports").document(today_str)
 
+        if type_counts == []:
+            return
+
         try:
             doc = doc_ref.get()
             if doc.exists:
@@ -126,4 +129,3 @@ class FirebaseHandler:
         except Exception as e:
             print(f"An error occurred while fetching IP addresses: {e}")
             return None
-        

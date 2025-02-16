@@ -111,9 +111,11 @@ const RobotView = () => {
         </p>
         <p className={styles.statusText}>Robot Mode: {robotMode}</p>
       </div>
+          <div style={{display:"flex", flex:"1", overflow:"hidden"}}>
+          <img className={styles.video} src={videoUrl} />
 
-      <img className={styles.video} src={videoUrl} />
-
+          </div>
+          
       <div className={styles.controls}>
         <Button
           label="Auto Mode"
