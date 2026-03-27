@@ -241,6 +241,14 @@ For issues or questions:
 2. Review inline code documentation
 3. Contact the project maintainer
 
+<img width="1280" height="2274" alt="image" src="https://github.com/user-attachments/assets/0a3dd1a0-4ffc-439f-8795-bfedb79ab736" />
+
+<img width="1842" height="821" alt="image" src="https://github.com/user-attachments/assets/7f0aac19-9a73-4c10-a4ac-0ecd4386f1b2" />
+
+<img width="1669" height="755" alt="image" src="https://github.com/user-attachments/assets/a6401528-98f7-40b9-ae0a-6bdfcdbc5f4a" />
+
+<img width="2048" height="976" alt="image" src="https://github.com/user-attachments/assets/6b8ac539-d5f2-4cb6-8109-02aaaabd6c81" />
+
 ---
 
 **Note**: This is a comprehensive agricultural automation system integrating multiple technologies. Ensure proper setup of all three components (Frontend, Backend, Robot) for full functionality.
